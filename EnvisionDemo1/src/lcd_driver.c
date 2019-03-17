@@ -9,7 +9,7 @@
 extern const uint16_t font_positions[];
 extern const uint8_t font_bitmap[];
 
-void mw_hal_lcd_init(void)
+void lcd_init(void)
 {
 	/* allow writing to PFSWE bit */
     MPC.PWPR.BIT.B0WI = 0;

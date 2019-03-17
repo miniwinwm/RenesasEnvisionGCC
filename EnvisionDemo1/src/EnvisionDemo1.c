@@ -8,8 +8,8 @@
 #define RED 0xFF0000
 
 void system_clock_config(void);
-bool mw_hal_touch_get_point(uint16_t* x, uint16_t* y);
-void mw_hal_lcd_init(void);
+bool _touch_get_point(uint16_t* x, uint16_t* y);
+void _lcd_init(void);
 void lcd_filled_rectangle(int16_t start_x,
 		int16_t start_y,
 		int16_t width,
@@ -24,14 +24,14 @@ int main(void)
 	char text[10];
 
 	system_clock_config();
-	mw_hal_touch_init();
-	mw_hal_lcd_init();
+	touch_init();
+	lcd_init();
 
 	lcd_filled_rectangle(0, 0, 480, 272, RED);
 
     while (true)
     {
-		touched = mw_hal_touch_get_point(&x, &y);
+		touched = touch_get_point(&x, &y);
 		if (touched)
 		{
 			if (x < 450 && y < 240)

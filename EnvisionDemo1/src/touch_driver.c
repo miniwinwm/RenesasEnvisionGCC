@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <iodefine.h>
 
-void mw_hal_delay_ms(uint16_t ms);
-void mw_hal_delay_us(uint32_t us);
+void delay_ms(uint16_t ms);
+void delay_us(uint32_t us);
 
 #define TOUCH_CONTROLLER_I2C_ADDRESS 	0x38U
 
@@ -191,7 +191,7 @@ static void generate_start_stop_condition(start_stop_condition_t start_stop_cond
 *** GLOBAL FUNCTIONS ***
 ***********************/
 
-void mw_hal_touch_init(void)
+void touch_init(void)
 {
 	/* set up push button gpio input */
 	PORT0.PMR.BIT.B5 = 0U;	/* mode to gpio */
@@ -210,9 +210,9 @@ void mw_hal_touch_init(void)
 
 	/* reset touch driver chip */
 	PORT0.PODR.BIT.B7 = 0U;
-	mw_hal_delay_ms(2U);
+	delay_ms(2U);
 	PORT0.PODR.BIT.B7 = 1U;
-	mw_hal_delay_ms(100U);
+	delay_ms(100U);
 
 	/* set up pins in pin controller */
 
@@ -337,18 +337,7 @@ void mw_hal_touch_init(void)
 	IEN(SCI6, TXI6) = 1U;
 }
 
-bool mw_hal_touch_is_recalibration_required(void)
-{
-	/* if board button pressed clear settings which forces a screen recalibration */
-	if (PORT0.PIDR.BIT.B5 == 0U)
-	{
-		return (true);
-	}
-
-	return (false);
-}
-
-bool mw_hal_touch_get_point(uint16_t* x, uint16_t* y)
+bool touch_get_point(uint16_t* x, uint16_t* y)
 {
 	uint8_t device_register = 0x02U;
 
@@ -389,17 +378,17 @@ bool mw_hal_touch_get_point(uint16_t* x, uint16_t* y)
 }
 
 
-void mw_hal_delay_ms(uint16_t ms)
+void delay_ms(uint16_t ms)
 {
 	volatile uint16_t i;
 
 	for (i = 0U; i < ms; i++)
 	{
-		mw_hal_delay_us(950U);
+		delay_us(950U);
 	}
 }
 
-void mw_hal_delay_us(uint32_t us)
+void delay_us(uint32_t us)
 {
 	volatile uint32_t i;
 
