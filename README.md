@@ -5,7 +5,9 @@ When creating a new project follow this procedure:
 --------------------------------------------------
 
 File|New|C/C++ Project
+
 Click Renesas RX
+
 Select GCC for Renesas RX C/C++ Executable Project, Next
 Choose a project name, Next
 Language: C
