@@ -1,21 +1,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <iodefine.h>
-#include <stdlib.h>
 
 #define BLACK 0x000000
 #define WHITE 0xffffff
 #define RED 0xFF0000
 
 void system_clock_config(void);
-bool _touch_get_point(uint16_t* x, uint16_t* y);
-void _lcd_init(void);
+void touch_init(void);
+bool touch_get_point(uint16_t* x, uint16_t* y);
+void lcd_init(void);
 void lcd_filled_rectangle(int16_t start_x,
 		int16_t start_y,
 		int16_t width,
 		int16_t height,
 		uint32_t colour);
 void lcd_string(int16_t x, int16_t y, const char *s, uint32_t colour);
+char *  itoa ( int value, char * str, int base );
 
 int main(void)
 {
@@ -131,4 +132,3 @@ void system_clock_config(void)
 	/* disable all protect register bits */
 	SYSTEM.PRCR.WORD = 0xA500;
 }
-
