@@ -64,7 +64,7 @@ Open the debug configuration that project generation created for you
 
 Click Debugger tab
 
-Clock Connection Settings
+Click Connection Settings
 
 Scroll down to Power settings and open the group if necessary
 
