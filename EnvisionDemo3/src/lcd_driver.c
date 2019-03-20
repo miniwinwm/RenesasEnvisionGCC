@@ -2,16 +2,15 @@
 #include <iodefine.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
+#include "lcd_driver.h"
 
-#define TITLE_FONT_HEIGHT			16
-#define LCD_DISPLAY_WIDTH_PIXELS	480
-#define LCD_DISPLAY_HEIGHT_PIXELS	272
-extern const uint16_t font_positions[];
-extern const uint8_t font_bitmap[];
+extern const uint8_t Font9_Table[];
 
+const uint32_t gr1_base_address = 0x00800000U + 480U * 272U * 2U;
 const uint32_t gr2_base_address = 0x00800000U;
 
-void lcd_init(void)
+void lcd_init_1_2(void)
 {
 	/* allow writing to PFSWE bit */
     MPC.PWPR.BIT.B0WI = 0U;
@@ -246,45 +245,72 @@ void lcd_init(void)
 	GLCDC.BGCOLOR.BIT.G = 0U;
 	GLCDC.BGCOLOR.BIT.B = 0U;
 
+	/* frame buffer 1 1 bpp format */
+	GLCDC.GR1FLM6.BIT.FORMAT = 7U;
+
 	/* frame buffer 2 565 format */
 	GLCDC.GR2FLM6.BIT.FORMAT = 0U;
+
+	/* set start address of gr1 buffer */
+	GLCDC.GR1FLM2 = gr1_base_address;
 
 	/* set start address of gr2 buffer */
 	GLCDC.GR2FLM2 = gr2_base_address;
 
-	/* set gr2 background colour */
+	/* set background colour, both buffers */
+	GLCDC.GR1BASE.BIT.R = 0U;
+	GLCDC.GR1BASE.BIT.G = 0U;
+	GLCDC.GR1BASE.BIT.B = 0U;
 	GLCDC.GR2BASE.BIT.R = 0U;
 	GLCDC.GR2BASE.BIT.G = 0U;
 	GLCDC.GR2BASE.BIT.B = 0U;
 
-	/* set number of 64 byte transfers -1 */
+	/* set number of 64 byte transfers - 1, gr1 */
+	GLCDC.GR1FLM5.BIT.DATANUM = 0U;
+
+	/* set number of 64 byte transfers - 1, gr2 */
 	GLCDC.GR2FLM5.BIT.DATANUM = 0xeU;
 
-	/* set number of lines in display gr2 */
+	/* set number of lines in display, both buffers */
+	GLCDC.GR1FLM5.BIT.LNNUM = 0x10fU;
 	GLCDC.GR2FLM5.BIT.LNNUM = 0x10fU;
+
+	/* line offset bytes gr1 */
+	GLCDC.GR1FLM3.BIT.LNOFF = 64U;
 
 	/* line offset bytes gr2 */
 	GLCDC.GR2FLM3.BIT.LNOFF = 480U * 2U;
 
-	/* width of graphical area */
+	/* height of graphical area, both buffers */
+	GLCDC.GR1AB2.BIT.GRCVW = 272U;
 	GLCDC.GR2AB2.BIT.GRCVW = 272U;
 
-	/* graphical area vertical start position */
+	/* graphical area vertical start position, both buffers */
+	GLCDC.GR1AB2.BIT.GRCVS = 9U;
 	GLCDC.GR2AB2.BIT.GRCVS = 9U;
 
-	/* height of graphical area */
+	/* width of graphical area, both buffers */
+	GLCDC.GR1AB3.BIT.GRCHW = 480U;
 	GLCDC.GR2AB3.BIT.GRCHW = 480U;
 
-	/* graphical area horizontal start position */
+	/* graphical area horizontal start position, both buffers */
+	GLCDC.GR1AB3.BIT.GRCHS = 0x29U;
 	GLCDC.GR2AB3.BIT.GRCHS = 0x29U;
 
-	/* frame not displayed */
+	/* frame not displayed, both buffers */
+	GLCDC.GR1AB1.BIT.GRCDISPON = 0U;
 	GLCDC.GR2AB1.BIT.GRCDISPON = 0U;
 
-	/* show current graphics */
+	/* colour lookup table, gr1 only */
+	GLCDC.GR1CLUT0[0].LONG = 0U;		/* black */
+	GLCDC.GR1CLUT0[1].LONG = 0xffffU;	/* white */
+
+	/* set show current graphics, both buffers, but buffer 2 is on top so this shows */
+	GLCDC.GR1AB1.BIT.DISPSEL = 2U;
 	GLCDC.GR2AB1.BIT.DISPSEL = 2U;
 
-	/* disable chroma control */
+	/* disable chroma control, both buffers */
+	GLCDC.GR1AB7.BIT.CKON = 0U;
 	GLCDC.GR2AB7.BIT.CKON = 0U;
 
 	/* configure the output control block */
@@ -346,6 +372,9 @@ void lcd_init(void)
 	IEN(ICU, GROUPAL1) = 0U;
 	IPR(ICU, GROUPAL1) = 0U;
 
+	/* allow reading of frame buffer 1 */
+	GLCDC.GR1FLMRD.BIT.RENB = 1U;
+
 	/* allow reading of frame buffer 2 */
 	GLCDC.GR2FLMRD.BIT.RENB = 1U;
 
@@ -357,21 +386,91 @@ void lcd_init(void)
 
 	/* release from software reset */
 	GLCDC.BGEN.BIT.SWRST = 1U;
+
 }
 
-void lcd_pixel(int16_t x, int16_t y, uint32_t colour)
+void lcd_select_buffer(uint8_t buffer)
 {
-	uint16_t* address = (uint16_t*)0x00800000;
-	uint32_t converted_colour = ((colour & 0xf80000U) >> 8U) |
-			((colour & 0xfc00U) >> 5U) |
-			((colour & 0xf8U) >> 3U);
+	GLCDC.BGEN.BIT.EN = 0U;
+	while (GLCDC.BGEN.BIT.EN == 1U)
+	{
+	}
+
+	if (buffer == 1)
+	{
+		GLCDC.GR2AB1.BIT.DISPSEL = 1U;
+	}
+	else if (buffer == 2)
+	{
+		GLCDC.GR2AB1.BIT.DISPSEL = 2U;
+	}
+
+	/* enable background generating block */
+	GLCDC.BGEN.BIT.EN = 1U;
+
+	/* enable register reflection */
+	GLCDC.BGEN.BIT.VEN = 1U;
+}
+
+void lcd_pixel_1(int16_t x, int16_t y, bool colour)
+{
+	uint8_t* address = (uint8_t*)gr1_base_address;
+	uint8_t mask = 0x01U << (x % 8U);
+
+	if (x < 0 || x >= LCD_DISPLAY_WIDTH_PIXELS || y < 0 || y >= LCD_DISPLAY_HEIGHT_PIXELS)
+	{
+		return;
+	}
+
+	address += x / 8U;
+	address += y * 64U;
+
+	if (colour)
+	{
+		*address |= mask;
+	}
+	else
+	{
+		*address &= ~mask;
+	}
+}
+
+void lcd_pixel_2(int16_t x, int16_t y, uint32_t colour)
+{
+	if (x < 0 || x >= LCD_DISPLAY_WIDTH_PIXELS || y < 0 || y >= LCD_DISPLAY_HEIGHT_PIXELS)
+	{
+		return;
+	}
+
+	uint16_t* address = (uint16_t*)gr2_base_address;
+	uint32_t converted_colour = ((colour & 0xf80000U) >> 8) |
+			((colour & 0xfc00U) >> 5) |
+			((colour & 0xf8U) >> 3);
 
 	address += x;
 	address += y * LCD_DISPLAY_WIDTH_PIXELS;
 	*address = (uint16_t)converted_colour;
 }
 
-void lcd_filled_rectangle(int16_t start_x,
+void lcd_filled_rectangle_1(int16_t start_x,
+		int16_t start_y,
+		int16_t width,
+		int16_t height,
+		bool colour)
+{
+	int16_t x;
+	int16_t y;
+
+	for (x = start_x; x < start_x + width; x++)
+	{
+		for (y = start_y; y < start_y + height; y++)
+		{
+			lcd_pixel_1(x, y, colour);
+		}
+	}
+}
+
+void lcd_filled_rectangle_2(int16_t start_x,
 		int16_t start_y,
 		int16_t width,
 		int16_t height,
@@ -382,9 +481,9 @@ void lcd_filled_rectangle(int16_t start_x,
 	int16_t x;
 	int16_t y;
 	uint16_t* address;
-	uint32_t converted_colour = ((colour & 0xf80000U) >> 8U) |
-			((colour & 0xfc00U) >> 5U) |
-			((colour & 0xf8U) >> 3U);
+	uint32_t converted_colour = ((colour & 0xf80000U) >> 8) |
+			((colour & 0xfc00U) >> 5) |
+			((colour & 0xf8U) >> 3);
 
 	end_x = start_x + width - 1;
 	end_y = start_y + height - 1;
@@ -393,68 +492,72 @@ void lcd_filled_rectangle(int16_t start_x,
 	{
 		for (y = start_y; y <= end_y; y++)
 		{
-			address = (uint16_t*)0x00800000;
+			address = (uint16_t*)gr2_base_address;
 			address += x;
-			address += y * 480;
+			address += y * (uint16_t)LCD_DISPLAY_WIDTH_PIXELS;
 			*address = (uint16_t)converted_colour;
 		}
 	}
 }
 
-void lcd_string(int16_t x, int16_t y, const char *s, uint32_t colour)
+void lcd_scroll_display_up_1(int16_t lines)
 {
-	size_t length = strlen(s);
-	uint8_t mask;
-	int16_t start_pos_in_bitmap;
-	int16_t end_pos_in_bitmap;
-	int16_t bitmap_x;
-	int16_t bitmap_y;
-	uint8_t i;
-	uint8_t byte_from_bitmap;
-	char c;
-	int16_t next_char_start_position_along_string = 0;
-	int16_t position_across_character;
-	int16_t string_width_pixels;
-	uint16_t temp_uint16;
+	int16_t y;
+	uint8_t *gr1_start_address = (uint8_t *)gr1_base_address;
 
-	for (i = 0U; i < length; i++)
+	if (lines > LCD_DISPLAY_HEIGHT_PIXELS || lines < 1)
 	{
-		for (bitmap_y = 0; bitmap_y < TITLE_FONT_HEIGHT; bitmap_y++)
+		return;
+	}
+
+	for (y = 0; y < LCD_DISPLAY_HEIGHT_PIXELS - lines; y++)
+	{
+		memcpy(gr1_start_address + y * 64, gr1_start_address + (y + lines) * 64, 64);
+	}
+
+	lcd_filled_rectangle_1(0, LCD_DISPLAY_HEIGHT_PIXELS - lines, LCD_DISPLAY_WIDTH_PIXELS, lines, false);
+}
+
+void lcd_character_1(int16_t x, int16_t y, char c)
+{
+	int16_t char_x;
+	int16_t char_y;
+	uint8_t mask;
+	int16_t byte_pos;
+
+	lcd_filled_rectangle_1(x,
+			y,
+			6,
+			10,
+			false);
+
+	byte_pos = ((int16_t)c - (int16_t)' ') * 9;
+
+	for (char_y = 0; char_y < 9; char_y++)
+	{
+		mask = 0x80;
+		for (char_x = 0; char_x < 5; char_x++)
 		{
-			c = s[i];
-			if (c < ' ' || c > '~')
+			if ((Font9_Table[byte_pos] & mask) == mask)
 			{
-				c = '*';
+				lcd_pixel_1(x + char_x, y + char_y, true);
 			}
-			c -= 32;
 
-			start_pos_in_bitmap = (int16_t)font_positions[(uint8_t)c];
-			end_pos_in_bitmap = (int16_t)font_positions[(uint8_t)c + 1U];
-
-			mask = 0x80U;
-			temp_uint16 = font_positions[(uint8_t)c] & 0x07U;
-			/* the next line is MISRA compliant despite a warning because the shift operand cannot be > 7 */
-			mask >>= (uint8_t)temp_uint16;
-
-			position_across_character = 0;
-			for (bitmap_x = start_pos_in_bitmap; bitmap_x < end_pos_in_bitmap; bitmap_x++)
-			{
-				byte_from_bitmap = font_bitmap[((uint16_t)bitmap_x >> 3U) + (uint16_t)bitmap_y * 87U];
-
-				if ((byte_from_bitmap & mask) == 0U)
-				{
-					lcd_pixel(x + next_char_start_position_along_string + position_across_character,
-							y + bitmap_y, colour);
-				}
-
-				mask >>= 1U;
-				if (mask == 0U)
-				{
-					mask = 0x80U;
-				}
-				position_across_character++;
-			}
+			mask >>= 1U;
 		}
-		next_char_start_position_along_string += position_across_character;
+
+		byte_pos++;
+	}
+}
+
+void lcd_string_1(int16_t x, int16_t y, const char *s)
+{
+	size_t c;
+	size_t length;
+
+	length = strlen(s);
+	for (c = (size_t)0; c < length; c++)
+	{
+		lcd_character_1(x + (int16_t)c * 6, y, s[c]);
 	}
 }

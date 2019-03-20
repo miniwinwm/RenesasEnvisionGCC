@@ -2,9 +2,9 @@
 #include <stdbool.h>
 #include <iodefine.h>
 
-#define BLACK 0x000000
-#define WHITE 0xffffff
-#define RED 0xFF0000
+#define BLACK 	0x000000
+#define WHITE 	0xffffff
+#define RED 	0xff0000
 
 void system_clock_config(void);
 void touch_init(void);
@@ -16,7 +16,7 @@ void lcd_filled_rectangle(int16_t start_x,
 		int16_t height,
 		uint32_t colour);
 void lcd_string(int16_t x, int16_t y, const char *s, uint32_t colour);
-char *  itoa ( int value, char * str, int base );
+char *itoa(int value, char *str, int base);
 
 int main(void)
 {
