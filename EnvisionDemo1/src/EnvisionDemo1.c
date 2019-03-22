@@ -55,19 +55,19 @@ int main(void)
 void system_clock_config(void)
 {
 	/* enable all protect register bits */
-	SYSTEM.PRCR.WORD = 0xA50B;
+	SYSTEM.PRCR.WORD = 0xa50bU;
 
 	/* forcibly oscillate the main clock */
 	SYSTEM.MOFCR.BIT.MOFXIN = 0U;
 
 	/* select resonator as main clock source */
-	SYSTEM.MOFCR.BIT.MOSEL = 0;
+	SYSTEM.MOFCR.BIT.MOSEL = 0U;
 
 	/* stop the HOCO, not using it */
 	SYSTEM.HOCOCR.BIT.HCSTP = 1U;
 
 	/* disable the sub-clock as no crystal input on hw */
-	RTC.RCR3.BIT.RTCEN = 0;
+	RTC.RCR3.BIT.RTCEN = 0U;
 
 	/* not using USB clock */
 	SYSTEM.SCKCR2.WORD = 0x0001U;
@@ -76,7 +76,7 @@ void system_clock_config(void)
 	SYSTEM.MOFCR.BIT.MODRV2 = 2U;
 
 	/* set wait time for starting main clock oscillator */
-	SYSTEM.MOSCWTCR.BYTE = 0x53;
+	SYSTEM.MOSCWTCR.BYTE = 0x53U;
 
 	/* start main clock oscillator */
 	SYSTEM.MOSCCR.BIT.MOSTP = 0U;
@@ -130,5 +130,5 @@ void system_clock_config(void)
 	SYSTEM.LOCOCR.BYTE = 1U;
 
 	/* disable all protect register bits */
-	SYSTEM.PRCR.WORD = 0xA500;
+	SYSTEM.PRCR.WORD = 0xa500U;
 }
