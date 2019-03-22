@@ -1,5 +1,6 @@
 #include <iodefine.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "rtc.h"
 
 void system_clock_config(void);
@@ -14,7 +15,7 @@ int main(void)
 	rtc_init();
 	rtc_set_time(&t2);
 
-    while(1)
+    while (true)
     {
     	rtc_get_time(&t1);
     	delay_us(1000000);
