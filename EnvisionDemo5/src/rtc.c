@@ -124,7 +124,7 @@ void rtc_init(void)
 
 	/* set divider */
 	RTC.RFRH.WORD = 1U;
-	RTC.RFRL.WORD = 0xe847;
+	RTC.RFRL.WORD = 0x6e35;
 
 	/* select count mode to calendar */
 	RTC.RCR2.BIT.CNTMD = 0U;
