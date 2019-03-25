@@ -36,12 +36,12 @@ int main(void)
     	itoa(i, num_buf, 10);
     	lcd_string_1(60, 261, num_buf);
     	lcd_scroll_display_up_1(10);
-    	delay_ms(500);
+    	delay_ms(250);
 
     	// simple moving graphic on gr2
     	lcd_filled_rectangle_2(0, 0, 480, 272, RED);
     	lcd_filled_rectangle_2(i, i, 20, 20, BLUE);
-    	delay_ms(500);
+    	delay_ms(250);
     }
 
     return 0;
@@ -187,9 +187,11 @@ void delay_ms(uint16_t ms)
 
 void delay_us(uint32_t us)
 {
-	volatile uint32_t i;
+	uint32_t i;
+	uint32_t d = us * 60U;
 
-	for (i = 0U; i < 13327U; i++)
+	for (i = 0U; i < d; i++)
 	{
+		__asm("NOP");
 	}
 }

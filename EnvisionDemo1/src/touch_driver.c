@@ -390,9 +390,11 @@ void delay_ms(uint16_t ms)
 
 void delay_us(uint32_t us)
 {
-	volatile uint32_t i;
+	uint32_t i;
+	uint32_t d = us * 60U;
 
-	for (i = 0U; i < 13327U; i++)
+	for (i = 0U; i < d; i++)
 	{
+		__asm("NOP");
 	}
 }
