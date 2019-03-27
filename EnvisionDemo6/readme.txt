@@ -3,7 +3,7 @@ reader connected to the Pmod connector on the Renesas Envision Kit (CN14).
 
 A SD Card reader with SPI connections that can be driven with a 3.3V power 
 supply is needed. These are available on EBay for Arduino projects for less
-than 5 £$€.
+than 5 ï¿½$ï¿½.
 
 The following connections are needed:
 
@@ -17,3 +17,5 @@ Pmod CN14	SD Card Reader (function)
 
 This example goes directly to registers but the FatFS API can be used
 for file access. 
+
+Stack space must be increased from the default 256 bytes to 1024 bytes.
