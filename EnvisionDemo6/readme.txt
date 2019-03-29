@@ -3,7 +3,7 @@ reader connected to the Pmod connector on the Renesas Envision Kit (CN14).
 
 A SD Card reader with SPI connections that can be driven with a 3.3V power 
 supply is needed. These are available on EBay for Arduino projects for less
-than 5 �$�.
+than $5.
 
 The following connections are needed:
 
