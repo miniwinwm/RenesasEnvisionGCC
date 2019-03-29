@@ -442,8 +442,7 @@ DRESULT disk_ioctl (
 	return res;
 }
 
-#pragma GCC optimize ("O3")
-static void dly_us (UINT n)
+static void __attribute__((optimize("O3"))) dly_us (UINT n)
 {
 	unsigned int i;
 	unsigned int d = n * 60U;

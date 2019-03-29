@@ -378,7 +378,7 @@ bool touch_get_point(uint16_t* x, uint16_t* y)
 }
 
 
-void delay_ms(uint16_t ms)
+void __attribute__((optimize("O3"))) delay_ms(uint16_t ms)
 {
 	volatile uint16_t i;
 
@@ -388,7 +388,7 @@ void delay_ms(uint16_t ms)
 	}
 }
 
-void delay_us(uint32_t us)
+void __attribute__((optimize("O3"))) delay_us(uint32_t us)
 {
 	uint32_t i;
 	uint32_t d = us * 60U;

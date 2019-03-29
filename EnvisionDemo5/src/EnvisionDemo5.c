@@ -105,7 +105,7 @@ void system_clock_config(void)
 	SYSTEM.PRCR.WORD = 0xa500U;
 }
 
-void delay_us(uint32_t us)
+void __attribute__((optimize("O3"))) delay_us(uint32_t us)
 {
 	uint32_t i;
 	uint32_t d = us * 60U;
