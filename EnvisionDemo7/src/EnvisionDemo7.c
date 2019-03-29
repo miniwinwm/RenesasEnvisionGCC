@@ -2,51 +2,64 @@
 #include <stdbool.h>
 #include "iodefine.h"
 
-#define BLACK 	0x000000
-#define WHITE 	0xffffff
-#define RED 	0xff0000
-
 void system_clock_config(void);
-void touch_init(void);
-bool touch_get_point(uint16_t* x, uint16_t* y);
-void lcd_init(void);
-void lcd_filled_rectangle(int16_t start_x,
-		int16_t start_y,
-		int16_t width,
-		int16_t height,
-		uint32_t colour);
-void lcd_string(int16_t x, int16_t y, const char *s, uint32_t colour);
-char *itoa(int value, char *str, int base);
+void timer_init(void);
 
 int main(void)
 {
-	bool touched;
-	uint16_t x, y;
-	char text[10];
-
 	system_clock_config();
-	touch_init();
-	lcd_init();
+	timer_init();
 
-	lcd_filled_rectangle(0, 0, 480, 272, RED);
+	/* set up led gpio output */
+	PORT7.PMR.BIT.B0 = 0U;	/* mode to gpio */
+	PORT7.ODR0.BIT.B0 = 0U;	/* cmos output type */
+	PORT7.PDR.BIT.B0 = 1U;	/* output */
 
     while (true)
     {
-		touched = touch_get_point(&x, &y);
-		if (touched)
-		{
-			if (x < 450 && y < 240)
-			{
-				lcd_filled_rectangle(x, y, 30, 32, BLACK);
-				itoa(x, text, 10);
-				lcd_string(x, y, text, WHITE);
-				itoa(y, text, 10);
-				lcd_string(x, y + 16, text, WHITE);
-			}
-		}
+    	// user led state is changed in interrupt handler for CMT0
     }
 
-    return 0;
+    return 0U;
+}
+
+void timer_init(void)
+{
+	/* set the protect register to write enable and key */
+	SYSTEM.PRCR.WORD = 0xa502U;
+
+	/* Bring module out of stop state */
+	MSTP(CMT0) = 0U;
+
+	/* stop counter */
+	CMT.CMSTR0.BIT.STR0 = 0U;
+
+	/* set the match value */
+	CMT0.CMCOR = 5859U;
+
+	/* set the clock divider to 512 */
+	CMT0.CMCR.BIT.CKS = 3U;
+
+	/* enable interrupt on match */
+	CMT0.CMCR.BIT.CMIE = 1U;
+
+	/* clear counter. */
+	CMT0.CMCNT = 0U;
+
+	/* clear any previously pending interrupts */
+	IR(CMT0, CMI0) = 0U;
+
+	/* set interrupt priority */
+	IPR(CMT0, CMI0) = 5U;
+
+	/* enable compare match interrupt */
+	IEN(CMT0, CMI0) = 1U;
+
+	/* start counter. */
+	CMT.CMSTR0.BIT.STR0 = 1U;
+
+	/* set the protect register to write disable and key */
+    SYSTEM.PRCR.WORD = 0xa500U;
 }
 
 /**
