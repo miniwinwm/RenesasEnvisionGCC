@@ -1,4 +1,4 @@
-Instructions for Creating a GNURX Project for Envision Kit
+Instructions for Creating a GCC RX Project for Envision Kit
 ----------------------------------------------------------
 
 When creating a new project follow this procedure:
