@@ -1,57 +1,19 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include "lcd_driver.h"
 #include "iodefine.h"
 
 void system_clock_config(void);
-void push_button_ir_config(void);
-char *itoa(int value, char *str, int base);
-void delay_ms(uint16_t ms);
-void delay_us(uint32_t us);
 
 int main(void)
 {
-	char num_buf[10];
-	int32_t i = 0;
-
 	system_clock_config();
-	push_button_ir_config();		// initialize push button and an interrupt when it's pushed
-	lcd_init_1_2();					// initialize both lcd buffers
 
-	// clear gr1 and gr2
-	lcd_filled_rectangle_1(0, 0, 480, 272, false);
-	lcd_filled_rectangle_2(0, 0, 480, 272, RED);
+	/* set up led gpio output */
+	PORT7.PMR.BIT.B0 = 0U;	/* mode to gpio */
+	PORT7.ODR0.BIT.B0 = 0U;	/* cmos output type */
+	PORT7.PDR.BIT.B0 = 1U;	/* output */
+	PORT7.PODR.BIT.B0 = 1U;	/* set initial state to off */
 
-    while (true)
-    {
-    	i++;
-    	if (i > 250)
-    	{
-    		i = 0;
-    	}
-
-    	// plot and scroll text on gr1
-    	lcd_string_1(0, 261, "Test text");
-    	itoa((int)i, num_buf, 10);
-    	lcd_string_1(60, 261, num_buf);
-    	lcd_scroll_display_up_1(10);
-    	delay_ms(250);
-
-    	// simple moving graphic on gr2
-    	lcd_filled_rectangle_2(0, 0, 480, 272, RED);
-    	lcd_filled_rectangle_2(i, i, 20, 20, BLUE);
-    	delay_ms(250);
-    }
-
-    return 0;
-}
-
-/**
- * Configure IRQ13 on push button
- */
-void push_button_ir_config(void)
-{
     /* enable writing to MPC pin function control registers */
 	SYSTEM.PRCR.WORD = 0xA50BU;
     MPC.PWPR.BIT.B0WI = 0U;
@@ -87,8 +49,13 @@ void push_button_ir_config(void)
     /* enable IRQ13 interrupt */
     IEN(ICU, IRQ13) = 1U;
 
-    /* enable IRQ13 interrupt */
-	//ICU.IER[9].BIT.IEN5 = 1U;
+    while (true)
+    {
+    	/* nothing to do here, it all happens in the interrupt handler */
+    	__asm("NOP");
+    }
+
+    return 0;
 }
 
 /**
@@ -173,25 +140,4 @@ void system_clock_config(void)
 
 	/* disable all protect register bits */
 	SYSTEM.PRCR.WORD = 0xa500U;
-}
-
-void __attribute__((optimize("O3"))) delay_ms(uint16_t ms)
-{
-	volatile uint16_t i;
-
-	for (i = 0U; i < ms; i++)
-	{
-		delay_us(950U);
-	}
-}
-
-void __attribute__((optimize("O3"))) delay_us(uint32_t us)
-{
-	uint32_t i;
-	uint32_t d = us * 60U;
-
-	for (i = 0U; i < d; i++)
-	{
-		__asm("NOP");
-	}
 }

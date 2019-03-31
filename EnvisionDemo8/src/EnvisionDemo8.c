@@ -1,94 +1,82 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include "lcd_driver.h"
 #include "iodefine.h"
 
 void system_clock_config(void);
-void push_button_ir_config(void);
-char *itoa(int value, char *str, int base);
-void delay_ms(uint16_t ms);
 void delay_us(uint32_t us);
+
+/* Volts per degree C from hardware manual */
+const float slope = 0.004f;
 
 int main(void)
 {
-	char num_buf[10];
-	int32_t i = 0;
+	float temperature;
+	float Vs;
+	float V1;
 
 	system_clock_config();
-	push_button_ir_config();		// initialize push button and an interrupt when it's pushed
-	lcd_init_1_2();					// initialize both lcd buffers
 
-	// clear gr1 and gr2
-	lcd_filled_rectangle_1(0, 0, 480, 272, false);
-	lcd_filled_rectangle_2(0, 0, 480, 272, RED);
+	/* read calibration voltage at 128 degrees C recorded when chip manufactured */
+	V1 = 3.3f * (float)TEMPSCONST.TSCDR / 4096.0f;
+
+	/* enable writing to power control bit */
+	SYSTEM.PRCR.WORD = 0xa502U;
+
+	/* release the S12AD1 module from stop */
+	MSTP(S12AD1) = 0U;
+
+	/* release the TEMPS module from stop */
+	MSTP(TEMPS) = 0U;
+
+	/* disable writing to power control bit */
+	SYSTEM.PRCR.WORD = 0xa500;
+
+	/* select 12 bit resolution, right justified format */
+	S12AD1.ADCER.BIT.ADPRC = 0U;
+	S12AD1.ADCER.BIT.ADRFMT = 0U;
+
+	/* temperature addition/average mode off */
+	S12AD1.ADEXICR.BIT.TSSAD = 0U;
+
+	/* require temperature measurement in single scan mode */
+	S12AD1.ADEXICR.BIT.TSSA = 1U;
+
+	/* set single scan mode */
+	S12AD1.ADCSR.BIT.ADCS = 0U;
+
+	/* start the temperature sensor, wait 30us to stabilize */
+	TEMPS.TSCR.BIT.TSEN = 1U;
+	delay_us(30U);
+
+	/* enable temperature sensor output */
+	TEMPS.TSCR.BIT.TSOE = 1U;
+
+	/* start conversion */
+	S12AD1.ADCSR.BIT.ADST = 1U;
+
+	/* disable temperature sensor output */
+	TEMPS.TSCR.BIT.TSOE = 0U;
+
+	/* stop temperature sensor output */
+	TEMPS.TSCR.BIT.TSEN = 0U;
+
+	/* wait until conversion finished */
+	while (S12AD1.ADCSR.BIT.ADST == 1U)
+	{
+		__asm("NOP");
+	}
+
+	/* calculate voltage from temperature sensor converted by ADC */
+	Vs = 3.3f * (float)S12AD1.ADTSDR / 4096.0f;
+
+	/* calculate temperature from voltage using formula from 'TEMPS' section of hardware manual */
+	temperature = (Vs - V1) / slope + 128.0f;
 
     while (true)
     {
-    	i++;
-    	if (i > 250)
-    	{
-    		i = 0;
-    	}
-
-    	// plot and scroll text on gr1
-    	lcd_string_1(0, 261, "Test text");
-    	itoa((int)i, num_buf, 10);
-    	lcd_string_1(60, 261, num_buf);
-    	lcd_scroll_display_up_1(10);
-    	delay_ms(250);
-
-    	// simple moving graphic on gr2
-    	lcd_filled_rectangle_2(0, 0, 480, 272, RED);
-    	lcd_filled_rectangle_2(i, i, 20, 20, BLUE);
-    	delay_ms(250);
     }
 
     return 0;
-}
-
-/**
- * Configure IRQ13 on push button
- */
-void push_button_ir_config(void)
-{
-    /* enable writing to MPC pin function control registers */
-	SYSTEM.PRCR.WORD = 0xA50BU;
-    MPC.PWPR.BIT.B0WI = 0U;
-    MPC.PWPR.BIT.PFSWE = 1U;
-
-    /* set P05 to IRQ13 */
-    MPC.P05PFS.BYTE = 0x40U;
-
-    /* disable writing to MPC pin function control registers */
-    MPC.PWPR.BIT.PFSWE = 0U;
-    MPC.PWPR.BIT.B0WI = 1U;
-
-    /* disable IRQ13 interrupt */
-	ICU.IER[9].BIT.IEN5 = 0U;
-
-	/* set up push button gpio input */
-	PORT0.PMR.BIT.B5 = 0U;	/* mode to gpio */
-	PORT0.PDR.BIT.B5 = 0U;	/* input */
-	PORT0.PCR.BIT.B5 = 0U;  /* pull-up disable */
-
-    /* disable IRQ13 digital filter */
-    ICU.IRQFLTE1.BIT.FLTEN13 = 0;
-
-    /* trigger interrupt on both edges */
-	ICU.IRQCR[13].BIT.IRQMD = 3U;
-
-	/* clear any outstanding IRQ13 interrupt */
-    IR(ICU, IRQ13) = 0U;
-
-    /* set IRQ13 priority level */
-    IPR(ICU, IRQ13) = 2U;
-
-    /* enable IRQ13 interrupt */
-    IEN(ICU, IRQ13) = 1U;
-
-    /* enable IRQ13 interrupt */
-	//ICU.IER[9].BIT.IEN5 = 1U;
 }
 
 /**
@@ -173,16 +161,6 @@ void system_clock_config(void)
 
 	/* disable all protect register bits */
 	SYSTEM.PRCR.WORD = 0xa500U;
-}
-
-void __attribute__((optimize("O3"))) delay_ms(uint16_t ms)
-{
-	volatile uint16_t i;
-
-	for (i = 0U; i < ms; i++)
-	{
-		delay_us(950U);
-	}
 }
 
 void __attribute__((optimize("O3"))) delay_us(uint32_t us)
