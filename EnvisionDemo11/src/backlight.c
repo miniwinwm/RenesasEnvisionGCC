@@ -8,7 +8,7 @@ void backlight_init(void)
 	/* enable writing to power control bit */
 	SYSTEM.PRCR.WORD = 0xa502U;
 
-	/* release the TMR3 module from stop */
+	/* release the MTU module from stop */
 	MSTP(MTU) = 0U;
 
 	/* disable writing to power control bit */
