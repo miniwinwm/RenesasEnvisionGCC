@@ -15,7 +15,6 @@ int main(void)
 	PORT7.PODR.BIT.B0 = 1U;	/* set initial state to off */
 
     /* enable writing to MPC pin function control registers */
-	SYSTEM.PRCR.WORD = 0xA50BU;
     MPC.PWPR.BIT.B0WI = 0U;
     MPC.PWPR.BIT.PFSWE = 1U;
 
@@ -27,7 +26,7 @@ int main(void)
     MPC.PWPR.BIT.B0WI = 1U;
 
     /* disable IRQ13 interrupt */
-	ICU.IER[9].BIT.IEN5 = 0U;
+    IEN(ICU, IRQ13) = 0U;
 
 	/* set up push button gpio input */
 	PORT0.PMR.BIT.B5 = 0U;	/* mode to gpio */
@@ -35,7 +34,7 @@ int main(void)
 	PORT0.PCR.BIT.B5 = 0U;  /* pull-up disable */
 
     /* disable IRQ13 digital filter */
-    ICU.IRQFLTE1.BIT.FLTEN13 = 0;
+    ICU.IRQFLTE1.BIT.FLTEN13 = 0U;
 
     /* trigger interrupt on both edges */
 	ICU.IRQCR[13].BIT.IRQMD = 3U;

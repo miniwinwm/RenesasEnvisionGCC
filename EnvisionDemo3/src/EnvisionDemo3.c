@@ -53,7 +53,6 @@ int main(void)
 void push_button_ir_config(void)
 {
     /* enable writing to MPC pin function control registers */
-	SYSTEM.PRCR.WORD = 0xA50BU;
     MPC.PWPR.BIT.B0WI = 0U;
     MPC.PWPR.BIT.PFSWE = 1U;
 
@@ -65,7 +64,7 @@ void push_button_ir_config(void)
     MPC.PWPR.BIT.B0WI = 1U;
 
     /* disable IRQ13 interrupt */
-	ICU.IER[9].BIT.IEN5 = 0U;
+    IEN(ICU, IRQ13) = 0U;
 
 	/* set up push button gpio input */
 	PORT0.PMR.BIT.B5 = 0U;	/* mode to gpio */
@@ -73,7 +72,7 @@ void push_button_ir_config(void)
 	PORT0.PCR.BIT.B5 = 0U;  /* pull-up disable */
 
     /* disable IRQ13 digital filter */
-    ICU.IRQFLTE1.BIT.FLTEN13 = 0;
+    ICU.IRQFLTE1.BIT.FLTEN13 = 0U;
 
     /* trigger interrupt on both edges */
 	ICU.IRQCR[13].BIT.IRQMD = 3U;
@@ -86,9 +85,6 @@ void push_button_ir_config(void)
 
     /* enable IRQ13 interrupt */
     IEN(ICU, IRQ13) = 1U;
-
-    /* enable IRQ13 interrupt */
-	//ICU.IER[9].BIT.IEN5 = 1U;
 }
 
 /**
