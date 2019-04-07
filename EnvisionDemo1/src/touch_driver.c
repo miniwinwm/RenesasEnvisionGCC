@@ -217,14 +217,14 @@ void touch_init(void)
 	/* set up pins in pin controller */
 
 	/* enable writing to MPC */
-    MPC.PWPR.BIT.B0WI = 0;
-    MPC.PWPR.BIT.PFSWE = 1;
+    MPC.PWPR.BIT.B0WI = 0U;
+    MPC.PWPR.BIT.PFSWE = 1U;
 
     /* set SSCL6 pin to P00 */
-    MPC.P01PFS.BYTE = 0x0AU;
+    MPC.P01PFS.BYTE = 0x0aU;
 
     /* set SSCL6 pin to P01 */
-    MPC.P00PFS.BYTE = 0x0AU;
+    MPC.P00PFS.BYTE = 0x0aU;
 
     /* disable writing MPC */
     MPC.PWPR.BIT.PFSWE = 0U;
@@ -274,7 +274,7 @@ void touch_init(void)
 	SCI6.SIMR3.BIT.IICSDAS = 3U;
 
     /* clock select */
-    SCI6.SMR.BYTE = 0;
+    SCI6.SMR.BYTE = 0U;
 
     /* msb first */
     SCI6.SCMR.BIT.SDIR = 1U;
@@ -339,7 +339,7 @@ void touch_init(void)
 
 bool touch_get_point(uint16_t* x, uint16_t* y)
 {
-	uint8_t device_register = 0x02U;
+	uint8_t device_register = 2U;
 
 	if (x == NULL || y == NULL)
 	{
@@ -369,8 +369,8 @@ bool touch_get_point(uint16_t* x, uint16_t* y)
 
 	if (i2c_buffer[0] > 0U)
 	{
-		*x = ((uint16_t)(i2c_buffer[1]) & 0x000FU) << 8U | (uint16_t)i2c_buffer[2];
-		*y = ((uint16_t)(i2c_buffer[3]) & 0x000FU) << 8U | (uint16_t)i2c_buffer[4];
+		*x = ((uint16_t)(i2c_buffer[1]) & 0x000FU) << 8 | (uint16_t)i2c_buffer[2];
+		*y = ((uint16_t)(i2c_buffer[3]) & 0x000FU) << 8 | (uint16_t)i2c_buffer[4];
 		return true;
 	}
 
