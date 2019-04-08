@@ -1,39 +1,115 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include "iodefine.h"
 
 void system_clock_config(void);
-void non_vol_load(uint8_t *data, uint16_t length);
-void non_vol_save(uint8_t *data, uint16_t length);
-
-typedef struct
-{
-	char test_text[45];
-	uint32_t test_numbers[10];
-} test_data_t;
-
-test_data_t test_data_1 = {{"Envision Kit GNURX flash data memory test"}, {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U}};
-test_data_t test_data_2;
 
 int main(void)
 {
-	bool success;
+	/* init system clock */
 	system_clock_config();
 
-	non_vol_save((uint8_t *)&test_data_1, sizeof(test_data_t));
-	non_vol_load((uint8_t *)&test_data_2, sizeof(test_data_t));
+	/**
+	 *  enable TMR0 and ELC modules
+	 */
 
-	if (memcmp(&test_data_2, &test_data_1, sizeof(test_data_t)) == 0)
-	{
-		success = true;
-	}
-	else
-	{
-		success = false;
-	}
+	/* enable writing to power control bit */
+	SYSTEM.PRCR.WORD = 0xa502U;
 
-	(void)success;
+	/* release the TMR0 module from stop */
+	MSTP(TMR0) = 0U;
+
+	/* release the ELC module from stop */
+	MSTP(ELC) = 0U;
+
+	/* disable writing to power control bit */
+	SYSTEM.PRCR.WORD = 0xa500;
+
+	/**
+	 * set up gpio b6 as output
+	 */
+
+	/* mode to gpio */
+	PORTB.PMR.BIT.B6 = 0U;
+
+	/* cmos output type */
+	PORTB.ODR1.BIT.B4 = 0U;
+
+	/* output */
+	PORTB.PDR.BIT.B6 = 1U;
+
+	/* initial state on */
+	PORTB.PODR.BIT.B6 = 1U;
+
+	/**
+	 * set up 8 bit timer 0
+	 */
+
+    /* set clock source select to internal clock */
+	TMR0.TCCR.BIT.CSS = 1U;
+
+    /* set clock select to PCLK/8192 */
+	TMR0.TCCR.BIT.CKS = 6U;
+
+	/* cleared by compare match B */
+	TMR0.TCR.BIT.CCLR = 2U;
+
+	/* compare match A interrupt disabled */
+	TMR0.TCR.BIT.CMIEA = 0U;
+
+	/* compare match B interrupt disabled */
+	TMR0.TCR.BIT.CMIEB = 0U;
+
+	/* set match A count */
+	TMR0.TCORA = 128U;
+
+	/* set match B count */
+	TMR0.TCORB = 255U;
+
+	/**
+	 * set up event link, single port 0 output on timer match input
+	 */
+
+	/* in single port 0 event destination set port B */
+	ELC.PEL0.BIT.PSP = 1U;
+
+	/* in single port 0 event destination set port pin 6 */
+	ELC.PEL0.BIT.PSB = 6U;
+
+	/* in single port 0 event destination set pin toggled on event */
+	ELC.PEL0.BIT.PSM = 2U;
+
+	/* set event source: TMR0 compare match A, set event destination: single port 0  */
+	ELC.ELSR24.BIT.ELS = 0x22U;
+
+	/* enable event linking */
+	ELC.ELCR.BIT.ELCON = 1U;
+
+
+
+#if 0
+	/* set channels enabled individually */
+	DA.DACR.BIT.DAE = 0U;
+
+	/* set channel 1 enabled */
+	DA.DACR.BIT.DAOE1 = 1U;
+
+	/* set right justified data */
+	DA.DADPR.BIT.DPSEL = 0U;
+
+	/* no synchronization with ADC */
+	DA.DAADSCR.BIT.DAADST = 0U;
+
+	/* no buffering output on channel 1 */
+	DA.DAAMPCR.BIT.DAAMP1 = 0U;
+
+
+
+	/* set starting data value */
+	DA.DADR1 = 2048U;
+#endif
+
+
 
     while (true)
     {

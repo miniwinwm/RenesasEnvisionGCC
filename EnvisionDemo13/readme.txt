@@ -12,7 +12,7 @@ value.
 
 The watchdog in this example is kicked by pressing the user button. The state of
 the watchdog cycle is shown on the LCD. Pressing the user button at the appropriate
-time according to the message displayed will allow tha application to continue.
+time according to the message displayed will allow the application to continue.
 Pressing the button too early or too late according to the messages will cause a 
 reset and restart.
 

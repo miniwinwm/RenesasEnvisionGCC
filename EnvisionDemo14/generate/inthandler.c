@@ -1,12 +1,24 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include "iodefine.h"
-#include "interrupt_handlers.h"
+                                                                          
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                          
+/************************************************************************/
+/*    File Version: V0.5A                                               */
+/*    History: 0.5A  (2015-12-04)  [Hardware Manual Revision : 0.5A]    */
+/*    Date Modified: 26/04/2016                                         */
+/************************************************************************/
 
-volatile bool rx_complete_interrupt_flag = false;
-volatile bool tx_complete_interrupt_flag = false;
-volatile bool start_complete_interrupt_flag = false;
-volatile uint8_t received_byte;
+#include "interrupt_handlers.h"
 
 // Exception(Supervisor Instruction)
 void INT_Excep_SuperVisorInst(void){/* brk(){  } */}
@@ -48,7 +60,7 @@ void INT_Excep_ICU_SWINT2(void){ }
 void INT_Excep_ICU_SWINT(void){ }
 
 // CMT0 CMI0
-void INT_Excep_CMT0_CMI0(void) { }
+void INT_Excep_CMT0_CMI0(void){ }
 
 // CMT1 CMI1
 void INT_Excep_CMT1_CMI1(void){ }
@@ -186,17 +198,10 @@ void INT_Excep_SCI5_RXI5(void){ }
 void INT_Excep_SCI5_TXI5(void){ }
 
 // SCI6 RXI6
-void INT_Excep_SCI6_RXI6(void)
-{
-	received_byte = SCI6.RDR;
-	rx_complete_interrupt_flag = true;
-}
+void INT_Excep_SCI6_RXI6(void){ }
 
 // SCI6 TXI6
-void INT_Excep_SCI6_TXI6(void)
-{
-	tx_complete_interrupt_flag = true;
-}
+void INT_Excep_SCI6_TXI6(void){ }
 
 // LVD1 LVD1
 void INT_Excep_LVD1_LVD1(void){ }
@@ -262,18 +267,7 @@ void INT_Excep_RSPI2_SPRI2(void){ }
 void INT_Excep_RSPI2_SPTI2(void){ }
 
 // ICU GROUPBL0
-void INT_Excep_ICU_GROUPBL0(void)
-{
-    if (1U == ICU.GRPBL0.BIT.IS12)
-    {
-    	SCI6.SIMR3.BIT.IICSTIF = 0U;
-    	while (SCI6.SIMR3.BIT.IICSTIF != 0U)
-    	{
-    	}
-
-    	start_complete_interrupt_flag = true;
-    }
-}
+void INT_Excep_ICU_GROUPBL0(void){ }
 
 // ICU GROUPBL1
 void INT_Excep_ICU_GROUPBL1(void){ }
@@ -703,3 +697,4 @@ void INT_Excep_PERIA_INTA254(void){ }
 
 // PERIA INTA255
 void INT_Excep_PERIA_INTA255(void){ }
+
