@@ -85,32 +85,6 @@ int main(void)
 	/* enable event linking */
 	ELC.ELCR.BIT.ELCON = 1U;
 
-
-
-#if 0
-	/* set channels enabled individually */
-	DA.DACR.BIT.DAE = 0U;
-
-	/* set channel 1 enabled */
-	DA.DACR.BIT.DAOE1 = 1U;
-
-	/* set right justified data */
-	DA.DADPR.BIT.DPSEL = 0U;
-
-	/* no synchronization with ADC */
-	DA.DAADSCR.BIT.DAADST = 0U;
-
-	/* no buffering output on channel 1 */
-	DA.DAAMPCR.BIT.DAAMP1 = 0U;
-
-
-
-	/* set starting data value */
-	DA.DADR1 = 2048U;
-#endif
-
-
-
     while (true)
     {
     }
@@ -126,17 +100,17 @@ void system_clock_config(void)
 	/* enable all protect register bits */
 	SYSTEM.PRCR.WORD = 0xa50bU;
 
-	/* forcibly oscillate the main clock */
-	SYSTEM.MOFCR.BIT.MOFXIN = 0U;
-
 	/* select resonator as main clock source */
 	SYSTEM.MOFCR.BIT.MOSEL = 0U;
 
 	/* stop the HOCO, not using it */
 	SYSTEM.HOCOCR.BIT.HCSTP = 1U;
 
-	/* disable the sub-clock as no crystal input on hw */
-	RTC.RCR3.BIT.RTCEN = 0U;
+	/* turn off power to HOCO */
+	SYSTEM.HOCOPCR.BIT.HOCOPCNT = 1U;
+
+    /* disable the sub-clock oscillator as no crystal fitted */
+    SYSTEM.SOSCCR.BIT.SOSTP = 1U;
 
 	/* not using USB clock */
 	SYSTEM.SCKCR2.WORD = 0x0001U;
@@ -148,7 +122,7 @@ void system_clock_config(void)
 	SYSTEM.MOSCWTCR.BYTE = 0x53U;
 
 	/* start main clock oscillator */
-	SYSTEM.MOSCCR.BIT.MOSTP = 0U;
+    SYSTEM.MOSCCR.BIT.MOSTP = 0U;
 
 	/* set rom wait state appropriate to main clock speed */
 	SYSTEM.ROMWT.BIT.ROMWT = 2U;

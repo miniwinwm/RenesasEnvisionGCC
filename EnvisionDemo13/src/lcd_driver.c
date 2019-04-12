@@ -414,7 +414,6 @@ void lcd_string(int16_t x, int16_t y, const char *s, uint32_t colour)
 	char c;
 	int16_t next_char_start_position_along_string = 0;
 	int16_t position_across_character;
-	int16_t string_width_pixels;
 	uint16_t temp_uint16;
 
 	for (i = 0U; i < length; i++)

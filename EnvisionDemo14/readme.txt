@@ -1,5 +1,5 @@
 This example demonstrates the event link controller. This module allows events
-to be communcated between hardware modules independent of interrupts or code.
+to be communicated between hardware modules independent of interrupts or code.
 
 This simple example sets up an 8 bit timer, TMR0, and on it's match A value
 sends an event to the ELC that toggles port B6.
