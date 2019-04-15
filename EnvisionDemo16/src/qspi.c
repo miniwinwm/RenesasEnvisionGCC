@@ -178,7 +178,7 @@ void qspi_open(void)
 	QSPI.SPPCR.BIT.MOIFV = 1U;
 
 	/* set baud rate to 30 Mbps */
-	QSPI.SPBR.BYTE = 80U;
+	QSPI.SPBR.BYTE = 1U;
 
 	/* set clock delay to 1.5 QSPI clock period */
 	QSPI.SPCKD.BIT.SCKDL = 0U;
