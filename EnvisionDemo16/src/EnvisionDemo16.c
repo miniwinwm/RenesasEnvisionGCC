@@ -50,7 +50,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* erase a sector */
 	if (qspi_MX25L_sector_erase(0x2000) == QSPI_ERROR)
@@ -63,7 +63,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* erase a sector */
 	if (qspi_MX25L_sector_erase(0x3000) == QSPI_ERROR)
@@ -76,7 +76,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* create test data */
 	for (c = 0U; c < 256U; c++)
@@ -95,7 +95,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* read page back */
 	if (qspi_MX25L_read(0x1000, 256, test_data_read) == QSPI_ERROR)
@@ -122,7 +122,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* read page back */
 	if (qspi_MX25L_read(0x2000, 250, test_data_read) == QSPI_ERROR)
@@ -149,7 +149,7 @@ bool qspi_test(void)
 	{
 		qspi_MX25L_get_write_in_progress(&write_in_progress);
 	}
-	while(write_in_progress);
+	while (write_in_progress);
 
 	/* read page back */
 	if (qspi_MX25L_read(0x3000, 10, test_data_read) == QSPI_ERROR)
