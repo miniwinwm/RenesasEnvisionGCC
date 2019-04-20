@@ -1,7 +1,7 @@
 #include <stdlib.h>
-#include <iodefine.h>
 #include <stdint.h>
 #include <string.h>
+#include "iodefine.h"
 
 #define TITLE_FONT_HEIGHT			16
 #define LCD_DISPLAY_WIDTH_PIXELS	480

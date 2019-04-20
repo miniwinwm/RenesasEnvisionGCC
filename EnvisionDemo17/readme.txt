@@ -1,4 +1,4 @@
-This example allows you to redirect normal console input/output to either the 
+This example allows you to redirect normal stdio console input/output to either the 
 Renesas Debug Virtual Console in e2studio or the serial port available on the
 Pmod connector on the Envision Kit (SCI9). If the serial port on the CN14 Pmod 
 connector is used a small TTL to RS-232 level converter board is required,
