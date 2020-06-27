@@ -36,7 +36,7 @@ Setting stack size to 1024, after creating the project
 
 Open linker_script.ld under generate folder
 
-Go to Graphical Editor (ignore warning dialog)
+Go to Graphical Editor
 
 Click on right arrow in RAM block 
 
@@ -60,7 +60,9 @@ In 'Language standard' choose 'ISO C99 (-std=c99)'
 Debugging
 ---------
 
-Open the debug configuration that project generation created for you
+Open Dubug Configurations (Run|Debug Configurations...)
+
+Open the debug configuration that project generation created for you under Renesas GDB Hardware Debugging drop down called "<your project nam> HardwareDebug"
 
 Click Debugger tab
 
